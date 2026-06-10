@@ -1,3 +1,36 @@
 from django.db import models
+from app.users.models import Patient, Doctor
 
 # Create your models here.
+class Appointment(models.Model):
+
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Scheduled", "Scheduled"),
+        ("Completed", "Completed"),
+        ("Cancelled", "Cancelled")
+    ]
+
+    appointment_id = models.AutoField(primary_key=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete = models.CASCADE)
+    appointment_date = models.DateTimeField()
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Scheduled")
+    appointment_time = models.TimeField()
+
+class Meta:
+    db_table = "appointments"
+
+    constraints = [
+        models.UniqueConstraint(
+            fields=[
+                "doctor",
+                "appointment_date",
+                "appointment_time"
+            ],
+            name="unique_doctor_slot"
+        )
+    ]
+    def __str__(self):
+        return f"Appointment {self.appointment_id} - {self.patient.first_name} with Dr. {self.doctor.first_name} on {self.appointment_date.strftime('%Y-%m-%d %H:%M')}"
