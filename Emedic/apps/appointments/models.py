@@ -11,7 +11,6 @@ class Appointment(models.Model):
         ("Cancelled", "Cancelled")
     ]
 
-    appointment_id = models.AutoField(primary_key=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete = models.CASCADE)
     appointment_date = models.DateTimeField()
@@ -33,4 +32,4 @@ class Meta:
         )
     ]
     def __str__(self):
-        return f"Appointment {self.appointment_id} - {self.patient.first_name} with Dr. {self.doctor.first_name} on {self.appointment_date.strftime('%Y-%m-%d %H:%M')}"
+        return f"Appointment q- {self.patient.first_name} with Dr. {self.doctor.first_name} on {self.appointment_date.strftime('%Y-%m-%d %H:%M')}"
