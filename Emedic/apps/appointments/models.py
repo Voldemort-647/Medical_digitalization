@@ -1,5 +1,5 @@
 from django.db import models
-from app.users.models import Patient, Doctor
+from apps.users.models import patient,doctor
 
 # Create your models here.
 class Appointment(models.Model):
@@ -11,8 +11,8 @@ class Appointment(models.Model):
         ("Cancelled", "Cancelled")
     ]
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor, on_delete = models.CASCADE)
+    patient = models.ForeignKey(patient, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(doctor, on_delete = models.CASCADE)
     appointment_date = models.DateTimeField()
     reason = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Scheduled")

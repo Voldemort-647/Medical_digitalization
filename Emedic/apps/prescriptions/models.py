@@ -1,10 +1,10 @@
 from django.db import models
-from app.users.models import patient,doctor
+from apps.users.models import patient,doctor
 
 # Create your models here.
 class Medicine(models.Model):
     medicine_name = models.CharField(max_length=255),
-    power - models.CharField(max_length=30),
+    power = models.CharField(max_length=30),
     active_ing = models.BooleanField(),
     generic_use = models.CharField(max_length=255)
     def __str__(self):
@@ -35,7 +35,7 @@ class PrescriptionItem(models.Model):
     prescription = models.ForeignKey(Prescription,on_delete=models.CASCADE)
     medicine = models.ForeignKey(Medicine,on_delete=models.PROTECT)
     dosage_frequency = models.CharField(max_length=100)
-    duration = models.DATETimeField()
+    duration = models.DateTimeField()
 
     def __str__(self):
         return f"{self.medicine.medicine_name} for {self.prescription.patient.first_name}"
