@@ -15,7 +15,7 @@ class Prescription(models.Model):
 
     STATUS_CHOICES = [
         ("Active", "Active"),
-        ("Expired", "Expired"),
+        ("Expired", "Expired"),   
         ("Cancelled", "Cancelled")
     ]   
 
