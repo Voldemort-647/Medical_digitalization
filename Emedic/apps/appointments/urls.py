@@ -1,41 +1,51 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+from .views import AppointmentViewSet
 from . import views
+router = DefaultRouter()
+
+router.register(
+    r'',
+    views.AppointmentViewSet,
+    basename='appointments'
+)
 
 urlpatterns = [
 
     # path(
-    #     'today/',
-    #     views.AppointmentsToday.as_view(),
-    #     name='appointment_list'
-    # ),
+    #      'today/',
+    #      views.AppointmentsToday.as_view(),
+    #      name='appointment_list'
+    #     ),
 
-    # path(
-    #     'doctor/me/',
-    #     views.AppoinmentsByDoctor.as_view(),
-    #     name='appointments_by_doctor'
-    # ),
+    #  path(
+    #      'doctor/me/',
+    #      views.AppoinmentsByDoctor.as_view(),
+    #      name='appointments_by_doctor'
+    #  ),
 
-    # path(
-    #     'create/',
-    #     views. AppointmentsCreate.as_View(),
-    #     name='appointment_create'   
-    # ),
+    #  path(
+    #      'create/',
+    #      views.AppointmentsCreate.as_view(),
+    #      name='appointment_create'
+    #  ),
 
-    # path(
-    #     'detail/<int:pk>/',
-    #     views.AppointmentsDetail.as_view(),
-    #     name='appointment_detail'
-    # ),
+    #  path(
+    #      'detail/<int:pk>/',
+    #      views.AppointmentsDetail.as_view(),
+    #      name='appointment_detail'
+    #  ),
 
-    # path(
-    #     'update/<int:pk>/',
-    #     views.AppointmentsUpdate.as_view(),
-    #     name='appointment_update'
-    # ),
+    #  path(
+    #      'update/<int:pk>/',
+    #      views.AppointmentsUpdate.as_view(),
+    #      name='appointment_update'
+    #  ),
 
-    # path(
+    #  path(
     #     'cancel/<int:pk>/',
-    #     views.AppointmentCancel.as_view(),
-    #     name='appointment_cancel'
-    # ),
+    #      views.AppointmentCancel.as_view(),
+    #      name='appointment_cancel'
+    #  ),
+     
 ]

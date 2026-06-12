@@ -18,18 +18,19 @@ class Appointment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Scheduled")
     appointment_time = models.TimeField()
 
-class Meta:
-    db_table = "appointments"
+    class Meta:
+     db_table = "appointments"
 
-    constraints = [
+     constraints = [
         models.UniqueConstraint(
-            fields=[
-                "doctor",
-                "appointment_date",
-                "appointment_time"
-            ],
-            name="unique_doctor_slot"
-        )
+             fields=[
+                    "doctor",
+                   "appointment_date",
+                  "appointment_time"
+              ],
+              name="unique_doctor_slot"
+    )
     ]
-    def __str__(self):
+
+def __str__(self):
         return f"Appointment q- {self.patient.first_name} with Dr. {self.doctor.first_name} on {self.appointment_date.strftime('%Y-%m-%d %H:%M')}"
