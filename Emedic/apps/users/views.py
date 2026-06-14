@@ -3,13 +3,14 @@ from django.http import HttpResponse
 # from django.views import View
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .serializer import doctorSerializers,patientSerializer,patientNameserializer
+from .serializer import doctorSerializers,patientSerializer,doctorNameserializer,patientNameserializer
 from rest_framework.decorators import api_view
 from .models import doctor,patient
 from apps.appointments.serializer import dashboardSerializer
 from apps.appointments.models import Appointment
 # Create your views here.
-
+def htmltest(request):
+    return render(request,'testhtml.html')
 
 
 @api_view(['POST'])
@@ -48,7 +49,7 @@ def modify_data(request,pk):
 @api_view(['GET'])
 def dshbrd(request,pk):
    tr_doctor=get_object_or_404(doctor,id=pk)
-  # dr_json=doctorSerializers(tr_doctor).data
+   dr_json=doctorNameserializer(tr_doctor).data
    appointment= Appointment.objects.filter(doctor_id=pk).select_related('patient')
    data_store=[]
    for singular in appointment:
@@ -56,7 +57,8 @@ def dshbrd(request,pk):
        temp_var['pt']=patientNameserializer(singular.patient).data
 
        data_store.append(temp_var)
-   return Response(data_store)
+   dr_json['appt']=data_store
+   return Response(dr_json)
 
 
 

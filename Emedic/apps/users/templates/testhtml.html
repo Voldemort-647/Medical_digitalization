@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicaPulse – Provider Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8eaed; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid #e8eaed; }
+  .logo-icon { width: 34px; height: 34px; background: #1a3c6e; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+  .logo-text { font-size: 15px; font-weight: 700; color: #1a3c6e; letter-spacing: -0.3px; }
+  .nav { flex: 1; padding: 12px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13.5px; color: #555; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
+  .nav-item:hover { background: #f5f7fa; color: #1a3c6e; }
+  .nav-item.active { background: #eef2fb; color: #1a3c6e; font-weight: 600; border-left-color: #1a3c6e; }
+  .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  .sidebar-footer { padding: 14px 16px; border-top: 1px solid #e8eaed; display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 34px; height: 34px; background: #d0daf0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #1a3c6e; flex-shrink: 0; }
+  .sidebar-footer-text { font-size: 12.5px; }
+  .sidebar-footer-name { font-weight: 600; color: #1a3c6e; }
+  .sidebar-footer-role { color: #999; font-size: 11px; letter-spacing: 0.5px; }
+  .support-link { padding: 8px 16px 14px; font-size: 12.5px; color: #888; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .support-link svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  .topbar { background: #fff; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; height: 48px; padding: 0 20px; gap: 0; flex-shrink: 0; }
+  .topbar-tab { padding: 0 18px; height: 100%; display: flex; align-items: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; }
+  .topbar-tab.active { color: #1a3c6e; font-weight: 600; border-bottom-color: #1a3c6e; }
+  .topbar-divider { width: 1px; height: 24px; background: #e8eaed; }
+  .topbar-search { margin-left: auto; display: flex; align-items: center; gap: 6px; background: #f5f7fa; border: 1px solid #e8eaed; border-radius: 8px; padding: 5px 12px; font-size: 13px; color: #aaa; }
+  .topbar-search svg { width: 15px; height: 15px; stroke: #aaa; fill: none; stroke-width: 2; }
+  .topbar-icons { display: flex; gap: 12px; margin-left: 14px; }
+  .topbar-icons svg { width: 18px; height: 18px; stroke: #888; fill: none; stroke-width: 1.8; cursor: pointer; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* HERO CARD */
+  .hero-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hero-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; padding: 20px 22px; position: relative; overflow: hidden; }
+  .hero-card::after { content: ''; position: absolute; right: -20px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; border-radius: 50%; background: rgba(26,60,110,0.04); }
+  .active-badge { font-size: 11px; font-weight: 600; color: #1a3c6e; background: #eef2fb; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; letter-spacing: 0.3px; }
+  .hero-title { font-size: 22px; font-weight: 700; color: #1a3c6e; margin-bottom: 8px; }
+  .hero-sub { font-size: 13px; color: #666; line-height: 1.55; margin-bottom: 18px; max-width: 380px; }
+  .hero-sub a { color: #1a6ed4; text-decoration: none; }
+  .hero-btn { background: #1a3c6e; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+  .hero-btn svg { width: 14px; height: 14px; fill: #fff; }
+
+  /* STAT CARDS */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-card.blue { background: #1a9ae0; }
+  .stat-card.teal { background: #0eb89a; }
+  .stat-card.white { background: #fff; border: 1px solid #e8eaed; }
+  .stat-top { display: flex; align-items: center; justify-content: space-between; }
+  .stat-icon svg { width: 20px; height: 20px; stroke: rgba(255,255,255,0.85); fill: none; stroke-width: 1.8; }
+  .stat-icon.light svg { stroke: #888; }
+  .stat-badge { font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.25); color: #fff; padding: 2px 8px; border-radius: 20px; display: flex; align-items: center; gap: 3px; }
+  .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: rgba(255,255,255,0.75); margin-top: 8px; }
+  .stat-label.light { color: #999; }
+  .stat-value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -1px; }
+  .stat-value.light { font-size: 20px; color: #1a3c6e; }
+  .stat-sub { font-size: 11.5px; color: rgba(255,255,255,0.7); }
+  .stat-sub.light { color: #aaa; }
+
+  /* SCHEDULE TABLE */
+  .schedule-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; overflow: hidden; }
+  .schedule-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid #f0f2f5; }
+  .schedule-title { font-size: 15px; font-weight: 700; color: #1a3c6e; }
+  .view-all { font-size: 12.5px; color: #1a6ed4; cursor: pointer; font-weight: 500; }
+  .schedule-table { width: 100%; border-collapse: collapse; }
+  .schedule-table thead tr { background: #f8f9fb; }
+  .schedule-table th { padding: 10px 16px; text-align: left; font-size: 11.5px; font-weight: 600; color: #999; letter-spacing: 0.5px; text-transform: uppercase; }
+  .schedule-table td { padding: 13px 16px; font-size: 13.5px; color: #333; border-top: 1px solid #f0f2f5; }
+  .time-col { color: #888; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .patient-name { font-weight: 600; color: #1a3c6e; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+  .dot-red { background: #e24b4a; }
+  .dot-gray { background: #c5c8d0; }
+  .dot-green { background: #2ecc71; }
+  .status-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.4px; display: inline-block; }
+  .status-waiting { background: #fde8e8; color: #a32d2d; }
+  .status-scheduled { background: #e8edf5; color: #1a3c6e; }
+  .status-pending { background: #fff3cd; color: #856404; }
+  .status-completed { background: #d4edda; color: #155724; }
+  .status-cancelled { background: #f5f5f5; color: #888; }
+
+  /* BOTTOM CARDS */
+  .bottom-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .bottom-card { background: #e8edf5; border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: background 0.15s; }
+  .bottom-card:hover { background: #dce4f0; }
+  .bottom-card-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(26,60,110,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .bottom-card-icon svg { width: 18px; height: 18px; stroke: #1a3c6e; fill: none; stroke-width: 1.8; }
+  .bottom-card-title { font-size: 13.5px; font-weight: 700; color: #1a3c6e; }
+  .bottom-card-sub { font-size: 11.5px; color: #7a8aaa; margin-top: 2px; }
+
+  /* LOADING / ERROR */
+  .state-msg { text-align: center; padding: 40px; color: #888; font-size: 14px; }
+  .spinner { border: 3px solid #e8eaed; border-top-color: #1a3c6e; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-text">ClinicaPulse</span>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Patients
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Appointments
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      Prescriptions
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 115 19.07M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DS</div>
+    <div class="sidebar-footer-text">
+      <div class="sidebar-footer-name" id="doctor-name">Loading…</div>
+      <div class="sidebar-footer-role" id="doctor-spec">CARDIOLOGY</div>
+    </div>
+  </div>
+  <div class="support-link">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Support
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="font-size:12.5px;color:#bbb;padding:0 16px 0 4px;">Facility: North General</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-tab active">Provider Dashboard</div>
+    <div class="topbar-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search Patients (⌘K)
+    </div>
+    <div class="topbar-icons">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+    <div class="state-msg"><div class="spinner"></div>Loading dashboard…</div>
+  </div>
+</div>
+
+<script>
+const API_URL = '/users/dashboard/1';
+
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hr = parseInt(h);
+  return `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+}
+
+function statusBadge(s) {
+  const map = {
+    'Scheduled': 'status-scheduled',
+    'Pending': 'status-pending',
+    'Completed': 'status-completed',
+    'Cancelled': 'status-cancelled',
+    'Waiting': 'status-waiting',
+  };
+  return `<span class="status-badge ${map[s] || 'status-scheduled'}">${s.toUpperCase()}</span>`;
+}
+
+function dotColor(s) {
+  if (s === 'Waiting') return 'dot-red';
+  if (s === 'Completed') return 'dot-green';
+  return 'dot-gray';
+}
+
+function todayAppts(appts) {
+  const today = new Date().toISOString().split('T')[0];
+  return appts.filter(a => a.appointment_date && a.appointment_date.startsWith(today));
+}
+
+function countByStatus(appts, status) {
+  return appts.filter(a => a.status === status).length;
+}
+
+function render(data) {
+  const name = data.name || 'Doctor';
+  const appts = data.appt || [];
+  const todayList = todayAppts(appts);
+  const scheduled = countByStatus(appts, 'Scheduled');
+  const pending = countByStatus(appts, 'Pending');
+  const completed = countByStatus(appts, 'Completed');
+
+  document.getElementById('doctor-name').textContent = name;
+  document.getElementById('doctor-spec').textContent = (data.specialization || 'General').toUpperCase();
+
+  const firstName = name;
+
+  const tableRows = appts.length === 0
+    ? `<tr><td colspan="4" class="state-msg">No appointments today.</td></tr>`
+    : appts.map(a => `
+      <tr>
+        <td class="time-col">${formatTime(a.appointment_time)}</td>
+        <td><span class="dot ${dotColor(a.status)}"></span><span class="patient-name">${a.pt.first_name} ${a.pt.last_name}</span></td>
+        <td>${a.reason || '—'}</td>
+        <td>${statusBadge(a.status)}</td>
+      </tr>`).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="hero-row">
+      <div class="hero-card">
+        <div class="active-badge">Active Duty</div>
+        <div class="hero-title">Good Morning, ${firstName}</div>
+        <div class="hero-sub">
+          You have ${appts.length} appointments scheduled. ${scheduled} confirmed, ${pending} pending review.
+          Your first evaluation is a follow-up for <a href="#">${appts[0]?.reason || 'General Checkup'}</a>.
+        </div>
+        <button class="hero-btn">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Open Appointment Queue
+        </button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card blue">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div class="stat-badge">↑ 12%</div>
+          </div>
+          <div class="stat-label">TOTAL PATIENTS</div>
+          <div class="stat-value">${appts.length}</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="stat-badge">↑ 8%</div>
+          </div>
+          <div class="stat-label">PRESCRIPTIONS TODAY</div>
+          <div class="stat-value">${completed}</div>
+        </div>
+        <div class="stat-card white">
+          <div class="stat-top">
+            <div class="stat-icon light"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg></div>
+          </div>
+          <div class="stat-label light">DRAFT NOTES</div>
+          <div class="stat-value light">2</div>
+          <div class="stat-sub light">2 Saved</div>
+        </div>
+        <div class="stat-card white">
+          <div class="stat-top">
+            <div class="stat-icon light"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          </div>
+          <div class="stat-label light">TASKS</div>
+          <div class="stat-value light">${scheduled}</div>
+          <div class="stat-sub light">0/15 Done</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-card">
+      <div class="schedule-header">
+        <div class="schedule-title">Today's Schedule</div>
+        <div class="view-all">View All</div>
+      </div>
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Patient</th>
+            <th>Reason</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+
+    <div class="bottom-row">
+      <div class="bottom-card">
+        <div class="bottom-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div>
+          <div class="bottom-card-title">Last 24 Hours</div>
+          <div class="bottom-card-sub">${appts.length} Patients Seen</div>
+        </div>
+      </div>
+      <div class="bottom-card">
+        <div class="bottom-card-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div>
+          <div class="bottom-card-title">Chart Integrity</div>
+          <div class="bottom-card-sub">98.4% Compliant</div>
+        </div>
+      </div>
+      <div class="bottom-card">
+        <div class="bottom-card-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <div>
+          <div class="bottom-card-title">Team Comms</div>
+          <div class="bottom-card-sub">3 Active Threads</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderError(msg) {
+  document.getElementById('content').innerHTML = `<div class="state-msg">⚠️ ${msg}</div>`;
+}
+
+fetch(API_URL)
+  .then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then(render)
+  .catch(err => {
+    console.error(err);
+    renderError(`Could not load data from <code>${API_URL}</code>. Make sure your DRF server is running.`);
+  });
+</script>
+</body>
+</html>

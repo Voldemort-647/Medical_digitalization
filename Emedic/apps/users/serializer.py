@@ -15,3 +15,9 @@ class patientNameserializer(serializers.ModelSerializer):
     class Meta():
         model=patient
         fields=['first_name','last_name']
+
+
+class doctorNameserializer(serializers.ModelSerializer):
+    class Meta():
+        model=doctor
+        fields=['name','specialization']
