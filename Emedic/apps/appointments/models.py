@@ -19,8 +19,6 @@ class Appointment(models.Model):
     appointment_time = models.TimeField()
 
     class Meta:
-     db_table = "appointments"
-
      constraints = [
         models.UniqueConstraint(
              fields=[

@@ -84,7 +84,7 @@ DATABASES = {
         "PORT":5432,
         "NAME": 'emedic_db',
         "USER": 'postgres',
-        "PASSWORD": 'Sumit@1736',
+        "PASSWORD": 'admin',
     }
 }
 
