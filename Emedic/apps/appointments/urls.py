@@ -6,11 +6,12 @@ from . import views
 router = DefaultRouter()
 
 router.register(
-    r'',
+    r'api',
     views.AppointmentViewSet,
-    basename='appointments'
+    basename='appointments_api'
 )
 
 urlpatterns =[ 
-    path('',include (router.urls))
+    path('',views.appointment_dashboard, name = 'appoitments_dashboard'),
+    path('data/',include (router.urls))
     ]
