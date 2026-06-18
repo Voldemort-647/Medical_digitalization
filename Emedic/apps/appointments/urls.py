@@ -2,18 +2,19 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from .views import AppointmentViewSet
 from . import views
+
 router = DefaultRouter()
 
 router.register(
-    r'',
+    r'api',
     views.AppointmentViewSet,
-    basename='appointments'
+    basename='appointments_api'
 )
 
 urlpatterns = [
     path('history/<int:pk>',views.patientHistory),
     path('display',views.display),
-    path('add',views.add)
+    path('add',views.add),
 
     # path(
     #      'today/',
@@ -50,5 +51,7 @@ urlpatterns = [
     #      views.AppointmentCancel.as_view(),
     #      name='appointment_cancel'
     #  ),
-     
-]
+    
+    path('',views.appointment_dashboard, name = 'appoitments_dashboard'),
+    path('data/',include (router.urls))
+    ]
