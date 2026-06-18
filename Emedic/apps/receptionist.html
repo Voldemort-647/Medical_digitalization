@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicaPulse – Appointments Queue</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+
+  /* SIDEBAR COMPONENT */
+  .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8eaed; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid #e8eaed; }
+  .logo-icon { width: 34px; height: 34px; background: #1a3c6e; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+  .logo-text { font-size: 15px; font-weight: 700; color: #1a3c6e; letter-spacing: -0.3px; }
+  .nav { flex: 1; padding: 12px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13.5px; color: #555; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: #f5f7fa; color: #1a3c6e; }
+  .nav-item.active { background: #eef2fb; color: #1a3c6e; font-weight: 600; border-left-color: #1a3c6e; }
+  .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+
+  /* CORE WORKSPACE ARCHITECTURE */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* SEARCH & TOPBAR CONTEXT */
+  .topbar { background: #fff; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; height: 48px; padding: 0 20px; flex-shrink: 0; }
+  .topbar-tab { padding: 0 18px; height: 100%; display: flex; align-items: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; text-decoration: none; }
+  .topbar-tab.active { color: #1a3c6e; font-weight: 600; border-bottom-color: #1a3c6e; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* HEADER ACTION CONTROLS */
+  .queue-headline { display: flex; justify-content: space-between; align-items: flex-start; }
+  .queue-title { font-size: 22px; font-weight: 700; color: #1a3c6e; }
+  .queue-meta { font-size: 13px; color: #666; margin-top: 4px; }
+
+  /* CORE DATA TABLE CONTAINER */
+  .queue-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+  .queue-table { width: 100%; border-collapse: collapse; text-align: left; }
+  .queue-table th { padding: 12px 20px; background: #f8f9fb; font-size: 11px; font-weight: 600; color: #999; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #e8eaed; }
+  .queue-table td { padding: 14px 20px; font-size: 13.5px; color: #333; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+  
+  /* CELL SCHEMATICS LAYOUTS */
+  .time-text { font-weight: 600; color: #1a3c6e; font-size: 13px; }
+  .patient-profile { display: flex; align-items: center; gap: 12px; }
+  .patient-avatar { width: 36px; height: 36px; background: #eef2fb; color: #1a3c6e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; }
+  .patient-title { font-weight: 700; color: #1a3c6e; margin-bottom: 2px; }
+  .patient-subtext { font-size: 11.5px; color: #888; }
+
+  /* FIGMA FLUID BADGES */
+  .status-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; text-align: center; }
+  .status-waiting { background: #fff3cd; color: #856404; }
+
+  /* INTERACTION ACTION CONTROL */
+  .action-btn-primary { background: #1a3c6e; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .action-btn-primary:hover { background: #132d54; }
+
+  /* METRICS SUMMARY CONTROL FOOTER */
+  .footer-bar { background: #f8f9fb; border-top: 1px solid #e8eaed; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #666; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-text">ClinicaPulse</span>
+  </div>
+  <nav class="nav">
+    <a href="#" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Home
+    </a>
+    <a href="#" class="nav-item active">
+      <svg viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16"/></svg>
+      Queue Link Requests
+    </a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <a href="#" class="topbar-tab active">Pending Verifications</a>
+  </div>
+
+  <div class="content">
+    <div class="queue-headline">
+      <div>
+        <h1 class="queue-title">Incoming Verification Queue</h1>
+        <p class="queue-meta">Review and approve self-scheduled patient registration forms.</p>
+      </div>
+    </div>
+
+    <div class="queue-card">
+      <table class="queue-table">
+        <thead>
+          <tr>
+            <th>Time Slot</th>
+            <th>Patient Identity</th>
+            <th>Demographics</th>
+            <th>Reason for Intake</th>
+            <th>State</th>
+            <th>Action Entry</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appointment in pending_appointments %}
+          <tr>
+            <td>
+              <span class="time-text">{{ appointment.appointment_time }}</span><br/>
+              <span class="patient-subtext">{{ appointment.appointment_date|date:"Y-m-d" }}</span>
+            </td>
+            <td>
+              <div class="patient-profile">
+                <div class="patient-avatar">
+                  {{ appointment.patient.user.first_name|slice:":1" }}{{ appointment.patient.user.last_name|slice:":1" }}
+                </div>
+                <div>
+                  <div class="patient-title">{{ appointment.patient.user.first_name }} {{ appointment.patient.user.last_name }}</div>
+                  <div class="patient-subtext">Phone: {{ appointment.patient.phone }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="patient-title" style="font-size:13px; font-weight:500;">DOB: {{ appointment.patient.dob }}</div>
+              <div class="patient-subtext">Blood: {{ appointment.patient.blood_type }} | {{ appointment.patient.gender }}</div>
+            </td>
+            <td>
+              <span class="patient-subtext" style="color:#444;">{{ appointment.reason }}</span>
+            </td>
+            <td>
+              <span class="status-tag status-waiting">{{ appointment.status }}</span>
+            </td>
+            <td>
+              <form action="{% url 'update_appointment_status' appointment.id %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="Scheduled">
+                <button type="submit" class="action-btn-primary">Appoint Session</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: #888;">
+              No fresh link responses pending triage in queue.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>ClinicaPulse Workspace Infrastructure</span>
+    <span>Operational Nodes Active</span>
+  </div>
+</main>
+
+</body>
+</html>

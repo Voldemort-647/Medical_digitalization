@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClinicaPulse – Appointments Queue</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+
+  /* SIDEBAR (Matches friend's layout framework) */
+  .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8eaed; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid #e8eaed; }
+  .logo-icon { width: 34px; height: 34px; background: #1a3c6e; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+  .logo-text { font-size: 15px; font-weight: 700; color: #1a3c6e; letter-spacing: -0.3px; }
+  .nav { flex: 1; padding: 12px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13.5px; color: #555; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; text-decoration: none; }
+  .nav-item:hover { background: #f5f7fa; color: #1a3c6e; }
+  .nav-item.active { background: #eef2fb; color: #1a3c6e; font-weight: 600; border-left-color: #1a3c6e; }
+  .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+  
+  .sidebar-footer { padding: 14px 16px; border-top: 1px solid #e8eaed; display: flex; align-items: center; gap: 10px; }
+  .avatar-circle { width: 34px; height: 34px; background: #d0daf0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #1a3c6e; flex-shrink: 0; }
+  .sidebar-footer-text { font-size: 12.5px; }
+  .sidebar-footer-name { font-weight: 600; color: #1a3c6e; }
+  .sidebar-footer-role { color: #999; font-size: 11px; letter-spacing: 0.5px; }
+
+  /* MAIN WORKSPACE */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  .topbar { background: #fff; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; height: 48px; padding: 0 20px; flex-shrink: 0; }
+  .topbar-tab { padding: 0 18px; height: 100%; display: flex; align-items: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; text-decoration: none; }
+  .topbar-tab.active { color: #1a3c6e; font-weight: 600; border-bottom-color: #1a3c6e; }
+  .topbar-divider { width: 1px; height: 24px; background: #e8eaed; margin: 0 12px; }
+  .topbar-icons { display: flex; gap: 12px; margin-left: auto; }
+  .topbar-icons svg { width: 18px; height: 18px; stroke: #888; fill: none; stroke-width: 1.8; cursor: pointer; }
+
+  /* CONTENT AREA */
+  .content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* HEADLINE ROW (From Figma) */
+  .queue-headline { display: flex; justify-content: space-between; align-items: flex-start; }
+  .queue-title { font-size: 22px; font-weight: 700; color: #1a3c6e; }
+  .queue-meta { font-size: 13px; color: #666; margin-top: 4px; }
+  
+  /* SEGMENTED FILTERS CONTROL */
+  .segmented-control { display: flex; background: #e8eaed; padding: 3px; border-radius: 8px; gap: 2px; }
+  .segment-btn { padding: 6px 16px; font-size: 12.5px; font-weight: 500; border: none; background: transparent; color: #666; cursor: pointer; border-radius: 6px; transition: all 0.1s; }
+  .segment-btn.active { background: #fff; color: #1a3c6e; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  /* SEARCH & REGISTRATION BAR */
+  .search-bar-row { display: flex; gap: 12px; align-items: center; }
+  .search-wrapper { flex: 1; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #e8eaed; border-radius: 8px; padding: 8px 14px; font-size: 13.5px; }
+  .search-wrapper svg { width: 16px; height: 16px; stroke: #888; fill: none; stroke-width: 2; }
+  .search-wrapper input { border: none; outline: none; width: 100%; color: #333; font-size: 13.5px; }
+  
+  .register-btn { background: #1a3c6e; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .register-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* CORE DATA TABLE CONTAINER */
+  .queue-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+  .queue-table { width: 100%; border-collapse: collapse; text-align: left; }
+  .queue-table th { padding: 12px 20px; background: #f8f9fb; font-size: 11px; font-weight: 600; color: #999; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 1px solid #e8eaed; }
+  .queue-table td { padding: 14px 20px; font-size: 13.5px; color: #333; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+  .queue-table tr:last-child td { border-bottom: none; }
+
+  /* TABLE FIELD LAYOUTS */
+  .time-text { font-weight: 600; color: #1a3c6e; font-size: 13px; line-height: 1.4; }
+  .patient-profile { display: flex; align-items: center; gap: 12px; }
+  .patient-avatar { width: 36px; height: 36px; background: #eef2fb; color: #1a3c6e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; }
+  .patient-title { font-weight: 700; color: #1a3c6e; margin-bottom: 2px; }
+  .patient-subtext { font-size: 11.5px; color: #888; }
+
+  /* FIGMA FLUID STATUS BADGES */
+  .status-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; text-align: center; }
+  .status-in-progress { background: #e0f2fe; color: #0369a1; }
+  .status-ready { background: #d4edda; color: #155724; }
+  .status-waiting { background: #fff3cd; color: #856404; }
+  .status-cancelled { background: #f5f5f5; color: #777; }
+
+  /* ROW ACTIONS */
+  .action-link { font-size: 12.5px; color: #1a6ed4; text-decoration: none; font-weight: 600; cursor: pointer; }
+  .action-link:hover { text-decoration: underline; }
+  .action-btn-primary { background: #1a3c6e; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  /* FOOTER METRICS SUMMARY BAR */
+  .footer-bar { background: #f8f9fb; border-top: 1px solid #e8eaed; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #666; flex-shrink: 0; }
+  .footer-indicators { display: flex; gap: 16px; align-items: center; }
+  .indicator-dot { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+  .indicator-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .ind-ready::before { background: #2ecc71; }
+  .ind-progress::before { background: #1a9ae0; }
+  .ind-waiting::before { background: #f59e0b; }
+
+  /* FEEDBACK INFRASTRUCTURE */
+  .state-msg { text-align: center; padding: 50px 20px; color: #888; font-size: 14px; }
+  .spinner { border: 3px solid #e8eaed; border-top-color: #1a3c6e; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="logo-text">ClinicaPulse</span>
+  </div>
+  <nav class="nav">
+    <a id="nav-link-home" href="/users/dashboard/html/?doctor_id=1" class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Patients
+    </div>
+    <a id="nav-link-appointments" href="/appointments/?doctor_id=1" class="nav-item active">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Appointments
+    </a>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      Prescriptions
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar-circle" id="doctor-avatar">D</div>
+    <div class="sidebar-footer-text">
+      <div class="sidebar-footer-name" id="doctor-name">Loading…</div>
+      <div id="doctor-specialization" class="patient-subtext">PROVIDER</div>   
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="font-size:12.5px;color:#bbb;padding-left:4px;">Facility: North General</div>
+    <div class="topbar-divider"></div>
+    <a id="topbar-link-dashboard" href="/users/dashboard/html/?doctor_id=1" class="topbar-tab">Provider Dashboard</a>
+    <div class="topbar-tab active">Daily Appointment Queue</div>
+    <div class="topbar-icons">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="queue-headline">
+      <div>
+        <h1 class="queue-title">Daily Appointment Queue</h1>
+        <div class="queue-meta" id="queue-date-label">Loading parameters...</div>
+      </div>
+      <div class="segmented-control">
+        <button class="segment-btn active" onclick="filterQueue('all', this)">All</button>
+        <button class="segment-btn" onclick="filterQueue('pending', this)">Triage Pending</button>
+        <button class="segment-btn" onclick="filterQueue('ready', this)">Consultation Ready</button>
+      </div>
+    </div>
+
+    <div class="search-bar-row">
+      <div class="search-wrapper">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="queueSearch" placeholder="Search patient by name or reason..." oninput="handleSearch(this.value)">
+      </div>
+      <button class="register-btn">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Register New Patient
+      </button>
+    </div>
+
+    <div class="queue-card" id="table-workspace">
+      <div class="state-msg"><div class="spinner"></div>Synchronizing data stream with backend...</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <div id="footer-pagination-label">Showing 0 of 0 patients</div>
+    <div class="footer-indicators">
+      <span class="indicator-dot ind-ready" id="count-ready">0 Completed</span>
+      <span class="indicator-dot ind-progress" id="count-progress">0 Pending</span>
+      <span class="indicator-dot ind-waiting" id="count-waiting">0 Scheduled</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const DOCTOR_ID = new URLSearchParams(window.location.search).get("doctor_id") || "1";
+// Explicit full domain path to completely bypass local origin mismatches
+const API_URL = `http://127.0.0.1:8000/appointments/data/api/?doctor_id=${DOCTOR_ID}`;
+
+// Synchronize sidebar and topbar link targets safely
+const homeLink = document.getElementById('nav-link-home');
+if (homeLink) homeLink.setAttribute('href', `/users/dashboard/html/?doctor_id=${DOCTOR_ID}`);
+
+const apptLink = document.getElementById('nav-link-appointments');
+if (apptLink) apptLink.setAttribute('href', `/appointments/?doctor_id=${DOCTOR_ID}`);
+
+const dashLink = document.getElementById('topbar-link-dashboard');
+if (dashLink) dashLink.setAttribute('href', `/users/dashboard/html/?doctor_id=${DOCTOR_ID}`);
+
+let rawAppointments = [];
+let activeFilter = 'all';
+let currentSearchTerm = '';
+
+function formatTime12h(timeString) {
+  if (!timeString) return '—';
+  try {
+    const parts = timeString.split(':');
+    if (parts.length < 2) return timeString;
+    const hour = parseInt(parts[0], 10);
+    const m = parts[1];
+    return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+  } catch(e) {
+    return timeString || '—';
+  }
+}
+
+function getStatusMapping(appt) {
+  // Grab the exact status string from your Django serializer ("Scheduled", "Pending", "Completed")
+  const backendStatus = appt ? appt.status : 'Scheduled'; 
+
+  switch (backendStatus) {
+    case 'Pending':
+      return { 
+        text: backendStatus, // Displays "Pending" natively
+        class: 'status-in-progress', // Retains the original blue CSS look
+        actionText: 'View Triage', 
+        isLink: true 
+      };
+    case 'Completed':
+      return { 
+        text: backendStatus, // Displays "Completed" natively
+        class: 'status-ready', // Retains the original green CSS look
+        actionText: 'View Triage', 
+        isLink: true 
+      };
+    case 'Cancelled':
+      return { 
+        text: backendStatus, // Displays "Cancelled" natively
+        class: 'status-cancelled', 
+        actionText: 'View Notes', 
+        isLink: true 
+      };
+    case 'Scheduled':
+    default:
+      return { 
+        text: backendStatus, // Displays "Scheduled" natively
+        class: 'status-waiting', // Retains the original yellow CSS look
+        actionText: 'Start Triage', 
+        isLink: false 
+      };
+  }
+}
+
+function processMetrics(appts) {
+  const label = document.getElementById('footer-pagination-label');
+  if (label) {
+    label.textContent = `Showing ${appts.length} of ${rawAppointments.length} patients`;
+  }
+  
+  let completed = 0, pending = 0, scheduled = 0;
+  rawAppointments.forEach(a => {
+    if (a.status === 'Completed') completed++;
+    if (a.status === 'Pending') pending++;
+    if (a.status === 'Scheduled') scheduled++;
+  });
+  
+  const rEl = document.getElementById('count-ready');
+  const pEl = document.getElementById('count-progress');
+  const wEl = document.getElementById('count-waiting');
+  
+  if (rEl) rEl.textContent = `${completed} Completed`;
+  if (pEl) pEl.textContent = `${pending} Pending`;
+  if (wEl) wEl.textContent = `${scheduled} Scheduled`;
+}
+
+function renderTable(appointmentsList) {
+  const container = document.getElementById('table-workspace');
+  if (!container) return;
+  
+  if (!appointmentsList || appointmentsList.length === 0) {
+    container.innerHTML = `<div class="state-msg">No active patients match the current query window.</div>`;
+    processMetrics([]);
+    return;
+  }
+
+    const rowsHtml = appointmentsList.map((a, index) => {
+    // Exact structural map targeting your new 'pt' serializer key
+    const patient = a.pt || {};
+    
+    const fName = patient.first_name || 'Unknown';
+    const lName = patient.last_name || 'Patient';
+    const initials = `${fName[0] || ''}${lName[0] || ''}`.toUpperCase();
+    
+    // Extracted directly from backend JSON with zero mock placeholders
+    const pAge = patient.age !== undefined && patient.age !== null ? patient.age : '—';
+    const pGender = patient.gender || '—';
+    
+    const badge = getStatusMapping(a);
+    const actionButtonHtml = badge.isLink 
+      ? `<a class="action-link">${badge.actionText}</a>`
+      : `<button class="action-btn-primary">${badge.actionText}</button>`;
+
+    return `
+      <tr>
+        <td class="time-text">${formatTime12h(a.appointment_time)}</td>
+        <td>
+          <div class="patient-profile">
+            <div class="patient-avatar">${initials}</div>
+            <div>
+              <div class="patient-title">${fName} ${lName}</div>
+              <div class="patient-subtext">• ${pAge}y/${pGender}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color:#555;">${a.reason || 'Routine Evaluation'}</td>
+        <td><span class="status-tag ${badge.class}">${badge.text}</span></td>
+        <td>${actionButtonHtml}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Strictly 5 headers here to cleanly stretch out and eliminate the visual gap layout bug
+  container.innerHTML = `
+    <table class="queue-table">
+      <thead>
+        <tr>
+          <th style="width: 15%;">Time</th>
+          <th style="width: 25%;">Patient</th>
+          <th style="width: 15%;">Visit Reason</th>
+          <th style="width: 15%;">Status</th>
+          <th style="width: 15%;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+  `;
+  
+  processMetrics(appointmentsList);
+}
+
+function applyPipelineFilters() {
+  let output = [...rawAppointments];
+
+  if (activeFilter === 'pending') {
+    output = output.filter(a => a.status === 'Pending' || a.status === 'Scheduled');
+  } else if (activeFilter === 'ready') {
+    output = output.filter(a => a.status === 'Completed');
+  }
+
+  if (currentSearchTerm) {
+    const term = currentSearchTerm.toLowerCase();
+    output = output.filter(a => {
+      const p = a.pt || a.patient || {};
+      const fn = (p.first_name || '').toLowerCase();
+      const ln = (p.last_name || '').toLowerCase();
+      const r = (a.reason || '').toLowerCase();
+      return fn.includes(term) || ln.includes(term) || r.includes(term);
+    });
+  }
+
+  renderTable(output);
+}
+
+function filterQueue(type, targetBtn) {
+  activeFilter = type;
+  document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+  if (targetBtn) targetBtn.classList.add('active');
+  applyPipelineFilters();
+}
+
+function handleSearch(val) {
+  currentSearchTerm = val;
+  applyPipelineFilters();
+}
+
+// Executes cleanly on event initialization to guarantee layout elements are safe
+window.addEventListener('DOMContentLoaded', () => {
+  fetch(API_URL)
+    .then(res => {
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      rawAppointments = Array.isArray(data) ? data : [];
+      
+      const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const metaLabel = document.getElementById('queue-date-label');
+      if (metaLabel) {
+        metaLabel.textContent = `${rawAppointments.length} Patients Today • ${today}`;
+      }
+
+      // Safe extraction matching your exact backend structure {"dt": {"name": "..."}}
+      if (rawAppointments.length > 0) {
+        const firstEntry = rawAppointments[0];
+        const doc = firstEntry.dt;
+        
+        if (doc && doc.name) {
+          const docName = doc.name; // Uses the combined "name" field from your serializer
+          const specialization = doc.specialization || 'PROVIDER'; // Grab fallback dynamically
+
+          const nameEl = document.getElementById('doctor-name');
+          const avEl = document.getElementById('doctor-avatar');
+          const specEl = document.getElementById('doctor-specialization'); // Targets your clean new ID        
+
+          if (nameEl) nameEl.textContent = `Dr. ${docName}`;
+          if (specEl) specEl.textContent = specialization; // Instantly replaces "PROVIDER" with "MBBS"          if (avEl) {
+            // Safely extracts the first letter of the full name string
+          if (avEl) {
+            const nameParts = docName.split(' ');
+            const initials = nameParts.length > 1 ? `${nameParts[0][0]}${nameParts[1][0]}` : `${nameParts[0][0]}`;
+            avEl.textContent = initials.toUpperCase();
+          }
+        }
+      }
+      
+      // Runs the display processing pipeline
+      applyPipelineFilters();
+    })
+    .catch(err => {
+      console.error("Pipeline Runtime Exception Tracer:", err);
+      const workspace = document.getElementById('table-workspace');
+      if (workspace) {
+        workspace.innerHTML = `
+          <div class="state-msg" style="color:#e24b4a;">
+            ⚠️ Failed to link workspace stream to <code>${API_URL}</code>.<br/>
+            Confirm your Django Service engine configuration is online.
+          </div>`;
+      }
+    });
+});
+</script>
+</body>
+</html>
