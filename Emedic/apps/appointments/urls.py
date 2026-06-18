@@ -11,6 +11,9 @@ router.register(
 )
 
 urlpatterns = [
+    path('history/<int:pk>',views.patientHistory),
+    path('display',views.display),
+    path('add',views.add)
 
     # path(
     #      'today/',
