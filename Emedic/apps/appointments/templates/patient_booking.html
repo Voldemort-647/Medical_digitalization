@@ -143,7 +143,10 @@
     </div>
     {% endif %}
 
-    <form action="{% url 'book_appointment' %}" method="POST">
+    <form
+    action="{% url 'booking_create' doctor.id %}"
+    method="POST"
+>
       {% csrf_token %}
 
       <!-- Step 1: Personal Details -->
@@ -183,9 +186,9 @@
             <label>Gender Assignment</label>
             <select name="gender" class="form-input" required>
               <option value="" disabled selected>Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="O">Other</option>
             </select>
           </div>
           <div class="field-group">
