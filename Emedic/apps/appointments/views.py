@@ -1,5 +1,9 @@
+from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from .models import Appointment
+from apps.users.models import patient,doctor
+from rest_framework.decorators import action,api_view
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
 from django.shortcuts import render,get_object_or_404, redirect
@@ -7,6 +11,34 @@ from .models import Appointment
 from django.contrib import messages
 from django.db import IntegrityError
 from .serializer import AppointmentSerializer
+from apps.users.serializer import patientNameserializer
+
+
+# Create your views here.
+@api_view(['POST'])
+def add(request):
+    inpuData=AppointmentSerializer(data=request.data)
+    if inpuData.is_valid():
+        inpuData.save()
+    return Response(inpuData.data)
+@api_view(['GET'])
+def patientHistory(request,pk):
+    Patient=get_object_or_404(patient,id=pk)
+    Pjson=patientNameserializer(Patient).data
+    History=Appointment.objects.filter(patient_id=pk)
+    listOfApp=[]
+    for singular in History:
+        temp_var=AppointmentSerializer(singular).data
+        listOfApp.append(temp_var)
+    Pjson["appt"]=listOfApp
+    return Response(Pjson)
+
+@api_view(['GET'])
+def display(request):
+    appointments=Appointment.objects.all()
+    json=AppointmentSerializer(appointments,many=True)
+    return Response(json.data)
+
 from datetime import date
 from apps.users.models import doctor, patient 
 
